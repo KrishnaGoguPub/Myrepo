@@ -92,7 +92,7 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "#,##0";
+          ws[cellAddress].z = "###0";
         }
       }
     }
