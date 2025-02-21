@@ -38,12 +38,13 @@
     }
     #vizContainer {
       flex: 1;
-      overflow: auto; /* Single scrollbar for both directions */
+      overflow-x: auto; /* Horizontal scroll for wide tables */
+      overflow-y: hidden; /* Prevent unnecessary vertical scroll here */
     }
     #dataTable {
       border-collapse: collapse;
       width: 100%;
-      table-layout: fixed; /* Ensure consistent column widths */
+      table-layout: fixed;
     }
     th, td {
       border: 0.5px solid #d3d3d3;
@@ -56,19 +57,23 @@
       resize: horizontal;
       overflow: hidden;
       cursor: col-resize;
-      background-color: #f2f2f2; /* Keep header visible */
+      background-color: #f2f2f2;
     }
     thead {
       position: sticky;
       top: 0;
-      z-index: 10; /* Keep header above content */
+      z-index: 10;
     }
     tbody {
-      /* Removed display: block to maintain alignment */
-    }
-    /* Ensure table takes full width */
-    thead tr, tbody tr {
+      display: block;
+      max-height: calc(100vh - 50px); /* Adjust based on header height and padding */
+      overflow-y: auto; /* Vertical scroll for tbody */
       width: 100%;
+    }
+    thead tr, tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed; /* Ensure alignment */
     }
   </style>
   <!-- Load Tableau Extensions API -->
