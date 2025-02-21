@@ -2,34 +2,27 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8">
-  <title></title>
+  <title>Simple Viz Extension</title>
   <style>
     body {
       font-family: Arial, sans-serif;
-      padding: 20px;
+      padding: 10px;
       margin: 0;
+      height: 100vh;
+      display: flex;
+      flex-direction: column;
     }
-    #vizContainer {
-      overflow-x: auto;
-    }
-    #dataTable {
-      border-collapse: collapse;
-      width: 100%;
-    }
-    th, td {
-      border: 1px solid #d3d3d3; /* Light grey */
-      padding: 8px;
-      text-align: left;
-      border-width: 0.5px; /* Thinner lines */
-    }
-    thead {
-      position: sticky;
-      top: 0;
-      background-color: #f2f2f2;
-      z-index: 10;
+    #container {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      position: relative;
     }
     #exportContainer {
-      margin-bottom: 10px; /* Space between button and table */
+      position: absolute;
+      top: 0;
+      right: 0;
+      padding: 5px;
     }
     #exportButton {
       padding: 5px 10px;
@@ -42,41 +35,64 @@
     #exportButton:hover {
       background-color: #002060;
     }
+    #vizContainer {
+      flex: 1;
+      overflow: auto;
+    }
+    #dataTable {
+      border-collapse: collapse;
+      width: 100%;
+      table-layout: fixed;
+    }
+    th, td {
+      border: 0.5px solid #d3d3d3;
+      padding: 8px;
+      text-align: left;
+      box-sizing: border-box;
+      min-width: 100px; /* Minimum width for resizing */
+    }
+    th {
+      resize: horizontal;
+      overflow: hidden;
+      cursor: col-resize;
+    }
+    thead {
+      position: sticky;
+      top: 0;
+      background-color: #f2f2f2;
+      z-index: 10;
+    }
     tbody {
       display: block;
-      max-height: 400px;
       overflow-y: auto;
+      max-height: calc(100vh - 100px); /* Adjust based on header height */
     }
     thead, tbody tr {
       display: table;
       width: 100%;
-      table-layout: fixed;
-    }
-    /* Ensure column widths match */
-    th, td {
-      box-sizing: border-box;
     }
   </style>
- <!-- Load Tableau Extensions API -->
+<!-- Load Tableau Extensions API -->
   <script src="https://krishnagogupub.github.io/Myrepo/lib/tableau.extensions.1.latest.js"></script>
   <!-- Load SheetJS for XLSX export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
   <script src="https://krishnagogupub.github.io/Myrepo/index.js"></script>
 </head>
 <body>
-  <h3>Simple Viz Extension</h3>
-  <div id="exportContainer">
-    <button id="exportButton">Export to Excel</button>
-  </div>
-  <div id="vizContainer">
-    <table id="dataTable">
-      <thead id="tableHeader">
-        <tr>
-          <!-- Columns will be populated here -->
-        </tr>
-      </thead>
-      <tbody id="tableBody"></tbody>
-    </table>
+  <div id="container">
+    <div id="exportContainer">
+      <button id="exportButton">Export to Excel</button>
+    </div>
+    <div id="vizContainer">
+      <table id="dataTable">
+        <thead id="tableHeader">
+          <tr>
+            <!-- Columns will be populated here -->
+          </tr>
+        </thead>
+        <tbody id="tableBody"></tbody>
+      </table>
+    </div>
   </div>
 </body>
 </html>
