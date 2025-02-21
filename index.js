@@ -12,10 +12,11 @@
 
       // Populate table header
       const header = document.getElementById("tableHeader");
-      let headerRow = "";
+      let headerRow = "<tr>";
       columns.forEach((col) => {
         headerRow += `<th>${col.fieldName}</th>`;
       });
+      headerRow += '<th><button id="exportButton">Export as XLSX</button></th>'; // Button in last header cell
       header.innerHTML = headerRow;
 
       // Populate table body
@@ -26,6 +27,7 @@
         row.forEach((cell) => {
           bodyContent += `<td>${cell.formattedValue}</td>`;
         });
+        bodyContent += "<td></td>"; // Empty cell to align with button column
         bodyContent += "</tr>";
       });
       body.innerHTML = bodyContent;
