@@ -1,0 +1,37 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <title>Simple Viz Extension</title>
+  <style>
+    table {
+      border-collapse: collapse;
+      width: 100%;
+    }
+    th, td {
+      border: 1px solid black;
+      padding: 8px;
+      text-align: left;
+    }
+    button {
+      margin-top: 10px;
+      padding: 5px 10px;
+    }
+  </style>
+  <!-- Load Tableau Extensions API -->
+  <script src="https://public.tableau.com/javascripts/api/tableau.extensions.1.latest.min.js"></script>
+  <!-- Load SheetJS for XLSX export -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+  <script src="index.js"></script>
+</head>
+<body>
+  <h3>Simple Viz Extension</h3>
+  <div id="vizContainer">
+    <table id="dataTable">
+      <thead id="tableHeader"></thead>
+      <tbody id="tableBody"></tbody>
+    </table>
+  </div>
+  <button id="exportButton">Export as XLSX</button>
+</body>
+</html>
