@@ -1,4 +1,6 @@
 (function () {
+  let renamedColumns = {};
+
   tableau.extensions.initializeAsync().then(() => {
     console.log("Extension initialized");
     renderViz();
@@ -10,11 +12,11 @@
       const columns = data.columns;
       const rows = data.data;
 
-      // Populate table header
+      // Populate table header with editable column names
       const header = document.getElementById("tableHeader");
       let headerRow = "<tr>";
-      columns.forEach((col) => {
-        headerRow += `<th>${col.fieldName}</th>`;
+      columns.forEach((col, index) => {
+        headerRow += `<th contenteditable="true" data-index="${index}" onblur="updateColumnName(this, '${col.fieldName}')">${col.fieldName}</th>`;
       });
       headerRow += "</tr>";
       header.innerHTML = headerRow;
@@ -31,13 +33,22 @@
       });
       body.innerHTML = bodyContent;
 
-      // Attach export functionality to the button (now outside the table)
+      // Attach export functionality
       document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
     });
   }
 
+  // Function to update column names
+  window.updateColumnName = function(element, originalName) {
+    const newName = element.textContent.trim() || originalName;
+    const index = element.getAttribute("data-index");
+    renamedColumns[index] = newName;
+    element.textContent = newName; // Ensure the display updates
+  };
+
   function exportToXLSX(columns, rows, worksheetName) {
-    const headers = ["Row Index", ...columns.map((col) => col.fieldName)];
+    // Use renamed columns if available, otherwise use original names
+    const headers = ["Row Index", ...columns.map((col, i) => renamedColumns[i] || col.fieldName)];
     const dataArray = [headers];
     rows.forEach((row, index) => {
       const rowData = [(index + 1).toString(), ...row.map((cell, i) => {
@@ -68,7 +79,7 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "###0";
+          ws[cellAddress].z = "#,##0";
         }
       }
     }
