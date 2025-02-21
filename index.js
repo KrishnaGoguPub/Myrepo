@@ -10,14 +10,15 @@
       const columns = data.columns;
       const rows = data.data;
 
+      // Populate table header
       const header = document.getElementById("tableHeader");
-      let headerRow = "<tr>";
+      let headerRow = "";
       columns.forEach((col) => {
         headerRow += `<th>${col.fieldName}</th>`;
       });
-      headerRow += "</tr>";
       header.innerHTML = headerRow;
 
+      // Populate table body
       const body = document.getElementById("tableBody");
       let bodyContent = "";
       rows.forEach((row) => {
@@ -29,17 +30,13 @@
       });
       body.innerHTML = bodyContent;
 
-      document.getElementById("exportButton").onclick = () => {
-        // Prompt for file extension
-        const defaultExtension = ".xlsx";
-        const userExtension = prompt("Enter file extension (e.g., .xlsx):", defaultExtension) || defaultExtension;
-        const sanitizedExtension = userExtension.startsWith(".") ? userExtension : `.${userExtension}`;
-        exportToXLSX(columns, rows, worksheet.name, sanitizedExtension);
-      };
+      // Attach export functionality to the button
+      document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
     });
   }
 
-  function exportToXLSX(columns, rows, worksheetName, extension) {
+  function exportToXLSX(columns, rows, worksheetName) {
+    // Preserve worksheet column order
     const headers = ["Row Index", ...columns.map((col) => col.fieldName)];
     const dataArray = [headers];
     rows.forEach((row, index) => {
@@ -54,7 +51,7 @@
     console.log("Worksheet before styling:", ws);
 
     const range = XLSX.utils.decode_range(ws["!ref"]);
-    // Style all header cells
+    // Style header row (dark blue background, white text)
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (!ws[cellAddress]) continue;
@@ -73,7 +70,7 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "###0";
+          ws[cellAddress].z = "#,##0";
         }
       }
     }
@@ -85,7 +82,7 @@
     XLSX.utils.book_append_sheet(wb, ws, worksheetName);
     console.log("Workbook prepared:", wb);
 
-    // Use the user-provided extension
-    XLSX.writeFile(wb, `${worksheetName}${extension}`);
+    // Save as .xlsx
+    XLSX.writeFile(wb, `${worksheetName}.xlsx`);
   }
 })();
