@@ -13,9 +13,24 @@
       padding: 8px;
       text-align: left;
     }
-    button {
-      margin-top: 10px;
+    #exportButton {
+      position: fixed;
+      top: 10px;
+      right: 10px;
       padding: 5px 10px;
+      background-color: #003087; /* Dark blue */
+      color: white;
+      border: none;
+      border-radius: 3px;
+      cursor: pointer;
+      z-index: 1000; /* Stay on top */
+    }
+    #exportButton:hover {
+      background-color: #002060; /* Darker blue on hover */
+    }
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
     }
   </style>
   <!-- Load Tableau Extensions API -->
@@ -32,6 +47,6 @@
       <tbody id="tableBody"></tbody>
     </table>
   </div>
-  <button id="exportButton">Export as XLSX</button>
+  <button id="exportButton">Export to Excel</button>
 </body>
 </html>
