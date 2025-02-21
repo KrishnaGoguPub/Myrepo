@@ -35,6 +35,9 @@
 
       // Attach export functionality
       document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
+
+      // Adjust column widths after rendering
+      adjustColumnWidths();
     });
   }
 
@@ -43,11 +46,23 @@
     const newName = element.textContent.trim() || originalName;
     const index = element.getAttribute("data-index");
     renamedColumns[index] = newName;
-    element.textContent = newName; // Ensure the display updates
+    element.textContent = newName;
   };
 
+  // Function to adjust column widths dynamically
+  function adjustColumnWidths() {
+    const thElements = document.querySelectorAll("#tableHeader th");
+    thElements.forEach((th, index) => {
+      th.addEventListener("resize", () => {
+        const width = th.offsetWidth;
+        document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
+          td.style.width = `${width}px`;
+        });
+      });
+    });
+  }
+
   function exportToXLSX(columns, rows, worksheetName) {
-    // Use renamed columns if available, otherwise use original names
     const headers = ["Row Index", ...columns.map((col, i) => renamedColumns[i] || col.fieldName)];
     const dataArray = [headers];
     rows.forEach((row, index) => {
@@ -61,7 +76,6 @@
     const ws = XLSX.utils.aoa_to_sheet(dataArray);
     const range = XLSX.utils.decode_range(ws["!ref"]);
     
-    // Style header row
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (!ws[cellAddress]) continue;
@@ -72,7 +86,6 @@
       };
     }
 
-    // Number formatting for data rows
     for (let row = range.s.r + 1; row <= range.e.r; row++) {
       for (let col = range.s.c + 1; col <= range.e.c; col++) {
         const cellAddress = XLSX.utils.encode_cell({ r: row, c: col });
