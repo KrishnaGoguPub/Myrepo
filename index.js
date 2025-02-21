@@ -16,7 +16,7 @@
       columns.forEach((col) => {
         headerRow += `<th>${col.fieldName}</th>`;
       });
-      headerRow += '<th><button id="exportButton">Export as XLSX</button></th>'; // Button in last header cell
+      headerRow += "</tr>";
       header.innerHTML = headerRow;
 
       // Populate table body
@@ -27,18 +27,16 @@
         row.forEach((cell) => {
           bodyContent += `<td>${cell.formattedValue}</td>`;
         });
-        bodyContent += "<td></td>"; // Empty cell to align with button column
         bodyContent += "</tr>";
       });
       body.innerHTML = bodyContent;
 
-      // Attach export functionality to the button
+      // Attach export functionality to the button (now outside the table)
       document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
     });
   }
 
   function exportToXLSX(columns, rows, worksheetName) {
-    // Preserve worksheet column order
     const headers = ["Row Index", ...columns.map((col) => col.fieldName)];
     const dataArray = [headers];
     rows.forEach((row, index) => {
@@ -50,19 +48,17 @@
     });
 
     const ws = XLSX.utils.aoa_to_sheet(dataArray);
-    console.log("Worksheet before styling:", ws);
-
     const range = XLSX.utils.decode_range(ws["!ref"]);
-    // Style header row (dark blue background, white text)
+    
+    // Style header row
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (!ws[cellAddress]) continue;
       ws[cellAddress].s = {
-        fill: { patternType: "solid", fgColor: { rgb: "003087" } }, // Dark blue
-        font: { bold: true, color: { rgb: "FFFFFF" } }, // White text
+        fill: { patternType: "solid", fgColor: { rgb: "003087" } },
+        font: { bold: true, color: { rgb: "FFFFFF" } },
         alignment: { horizontal: "center" },
       };
-      console.log(`Styled ${cellAddress}:`, ws[cellAddress].s);
     }
 
     // Number formatting for data rows
@@ -72,19 +68,15 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "#,##0";
+          ws[cellAddress].z = "###0";
         }
       }
     }
 
-    // Hide Row Index column
     ws["!cols"] = [{ wch: 10, hidden: true }, ...columns.map(() => ({ wch: 15 }))];
-
+    
     const wb = XLSX.utils.book_new();
     XLSX.utils.book_append_sheet(wb, ws, worksheetName);
-    console.log("Workbook prepared:", wb);
-
-    // Save as .xlsx
     XLSX.writeFile(wb, `${worksheetName}.xlsx`);
   }
 })();
