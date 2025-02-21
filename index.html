@@ -4,7 +4,15 @@
   <meta charset="UTF-8">
   <title>Simple Viz Extension</title>
   <style>
-    table {
+    body {
+      font-family: Arial, sans-serif;
+      padding: 20px;
+      margin: 0;
+    }
+    #vizContainer {
+      overflow-x: auto; /* Horizontal scroll if needed */
+    }
+    #dataTable {
       border-collapse: collapse;
       width: 100%;
     }
@@ -13,24 +21,36 @@
       padding: 8px;
       text-align: left;
     }
+    /* Freeze header */
+    thead {
+      position: sticky;
+      top: 0;
+      background-color: #f2f2f2; /* Light gray for header */
+      z-index: 10; /* Ensure header stays above rows */
+    }
+    /* Button in header */
     #exportButton {
-      position: fixed;
-      top: 10px;
-      right: 10px;
       padding: 5px 10px;
       background-color: #003087; /* Dark blue */
       color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
-      z-index: 1000; /* Stay on top */
+      margin-left: 10px; /* Space from last column */
     }
     #exportButton:hover {
       background-color: #002060; /* Darker blue on hover */
     }
-    body {
-      font-family: Arial, sans-serif;
-      padding: 20px;
+    /* Scrollable body */
+    tbody {
+      display: block;
+      max-height: 400px; /* Adjust as needed */
+      overflow-y: auto; /* Vertical scroll for rows */
+    }
+    thead, tbody tr {
+      display: table;
+      width: 100%;
+      table-layout: fixed; /* Consistent column widths */
     }
   </style>
   <!-- Load Tableau Extensions API -->
@@ -43,10 +63,14 @@
   <h3>Simple Viz Extension</h3>
   <div id="vizContainer">
     <table id="dataTable">
-      <thead id="tableHeader"></thead>
+      <thead id="tableHeader">
+        <tr>
+          <!-- Columns will be populated here -->
+          <th colspan="100%"><button id="exportButton">Export as XLSX</button></th> <!-- Button in header -->
+        </tr>
+      </thead>
       <tbody id="tableBody"></tbody>
     </table>
   </div>
-  <button id="exportButton">Export to Excel</button>
 </body>
 </html>
