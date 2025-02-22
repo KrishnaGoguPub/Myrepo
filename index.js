@@ -1,13 +1,41 @@
 (function () {
   let renamedColumns = {};
+  let worksheet;
 
   tableau.extensions.initializeAsync().then(() => {
     console.log("Extension initialized");
+    worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
     renderViz();
+    setupEventListeners(); // Set up listeners for filter and parameter changes
   });
 
+  function setupEventListeners() {
+    // Listen for filter changes on the worksheet
+    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
+      console.log("Filter changed:", event);
+      renderViz(); // Re-render table when filter changes
+    });
+
+    // Listen for data source refresh
+    worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
+      console.log("Data source changed:", event);
+      renderViz();
+    });
+
+    // Listen for parameter changes on the dashboard
+    tableau.extensions.dashboardContent.dashboard.getParametersAsync().then(parameters => {
+      parameters.forEach(parameter => {
+        parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
+          console.log("Parameter changed:", event);
+          renderViz(); // Re-render table when any parameter changes
+        });
+      });
+    }).catch(error => {
+      console.error("Error fetching parameters:", error);
+    });
+  }
+
   function renderViz() {
-    const worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
     worksheet.getSummaryDataAsync().then((data) => {
       const columns = data.columns;
       const rows = data.data;
@@ -16,7 +44,8 @@
       const header = document.getElementById("tableHeader");
       let headerRow = "<tr>";
       columns.forEach((col, index) => {
-        headerRow += `<th contenteditable="true" data-index="${index}" onblur="updateColumnName(this, '${col.fieldName}')">${col.fieldName}</th>`;
+        const currentName = renamedColumns[index] || col.fieldName;
+        headerRow += `<th contenteditable="true" data-index="${index}" onblur="updateColumnName(this, '${col.fieldName}')">${currentName}</th>`;
       });
       headerRow += "</tr>";
       header.innerHTML = headerRow;
@@ -38,6 +67,8 @@
 
       // Adjust column widths after rendering
       adjustColumnWidths();
+    }).catch(error => {
+      console.error("Error fetching summary data:", error);
     });
   }
 
@@ -92,7 +123,7 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "#,##0";
+          ws[cellAddress].z = "###0";
         }
       }
     }
