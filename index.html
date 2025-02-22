@@ -38,7 +38,7 @@
     }
     #vizContainer {
       flex: 1;
-      overflow: hidden; /* No scroll here, let table handle it */
+      overflow: hidden; /* No scrolling at container level */
     }
     #dataTable {
       border-collapse: collapse;
@@ -51,10 +51,12 @@
       text-align: left;
       box-sizing: border-box;
       min-width: 100px;
+      overflow: hidden; /* Prevent content from forcing scroll */
+      text-overflow: ellipsis; /* Optional: truncate long text */
+      white-space: nowrap; /* Prevent wrapping */
     }
     th {
       resize: horizontal;
-      overflow: hidden;
       cursor: col-resize;
       background-color: #f2f2f2;
     }
@@ -67,6 +69,7 @@
       display: block;
       max-height: calc(100vh - 50px); /* Adjust for header and padding */
       overflow-y: auto; /* Vertical scroll only */
+      overflow-x: hidden; /* Explicitly disable horizontal scroll */
       width: 100%;
     }
     thead tr, tbody tr {
@@ -75,7 +78,7 @@
       table-layout: fixed;
     }
   </style>
-<!-- Load Tableau Extensions API -->
+  <!-- Load Tableau Extensions API -->
   <script src="https://krishnagogupub.github.io/Myrepo/lib/tableau.extensions.1.latest.js"></script>
   <!-- Load SheetJS for XLSX export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -84,7 +87,7 @@
 <body>
   <div id="container">
     <div id="exportContainer">
-      <button id="exportButton">Export as XLSX</button>
+      <button id="exportButton">Export to Excel</button>
     </div>
     <div id="vizContainer">
       <table id="dataTable">
