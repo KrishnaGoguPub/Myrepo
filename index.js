@@ -34,13 +34,26 @@
       console.log("Parameters found:", parameters.map(p => p.name));
       parameters.forEach(parameter => {
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
-        parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
-          console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-          // Add a slight delay to ensure worksheet data updates
-          setTimeout(() => {
-            console.log("Fetching updated data after parameter change...");
-            renderViz();
-          }, 500); // 500ms delay to allow Tableau to update
+       parameter.addEventListener(tableau.TableauEventType.ParameterChanged, async (event) => {
+  console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
+
+  try {
+    // Force a refresh of the worksheet to reflect parameter changes
+    const dataSources = await worksheet.getDataSourcesAsync();
+    if (dataSources.length > 0) {
+      await dataSources[0].refreshAsync(); // Manually refresh the first data source
+    }
+
+    // Add a slight delay to ensure the data refresh takes effect
+    setTimeout(() => {
+      console.log("Fetching updated data after parameter change...");
+      renderViz();
+    }, 800); // 800ms delay for Tableau to process updates
+  } catch (error) {
+    console.error("Error refreshing data after parameter change:", error);
+  }
+});
+
         });
       });
     }).catch(error => {
