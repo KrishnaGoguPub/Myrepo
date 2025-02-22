@@ -10,11 +10,37 @@
   });
 
   function setupEventListeners() {
-    // Listen for filter changes on the worksheet
-    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
-      console.log("FilterChanged event:", event);
+  worksheet.addEventListener(tableau.TableauEventType.FilterChanged, renderViz);
+  worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, renderViz);
+  worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, renderViz);
+
+  const dashboard = tableau.extensions.dashboardContent.dashboard;
+  dashboard.getParametersAsync().then(parameters => {
+    parameters.forEach(parameter => {
+    parameter.addEventListener(tableau.TableauEventType.ParameterChanged, async (event) => {
+  console.log(`ParameterChanged: ${event.parameterName} changed to:`, event.field.value);
+
+  try {
+    console.log("Temporarily switching worksheets...");
+    const allWorksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
+    const tempSheet = allWorksheets[allWorksheets.length - 1]; // Pick another worksheet
+    await tempSheet.getSummaryDataAsync(); // Just trigger an update
+
+    setTimeout(() => {
+      console.log("Fetching updated data after parameter change...");
       renderViz();
+    }, 500);
+  } catch (error) {
+    console.error("Error triggering summary data update:", error);
+  }
+});
+
     });
+  }).catch(error => {
+    console.error("Error fetching parameters:", error);
+  });
+}
+
 
     // Listen for data source refresh
     worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
