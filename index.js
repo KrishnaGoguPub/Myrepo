@@ -9,37 +9,12 @@
     setupEventListeners(); // Set up listeners for filter and parameter changes
   });
 
- function setupEventListeners() {
-  worksheet.addEventListener(tableau.TableauEventType.FilterChanged, renderViz);
-  worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, renderViz);
-  worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, renderViz);
-
-  const dashboard = tableau.extensions.dashboardContent.dashboard;
-  dashboard.getParametersAsync().then(parameters => {
-    parameters.forEach(parameter => {
- parameter.addEventListener(tableau.TableauEventType.ParameterChanged, async (event) => {
-  console.log(`ParameterChanged: ${event.parameterName} changed to:`, event.field.value);
-
-  try {
-    console.log("Temporarily switching worksheets...");
-    const allWorksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-    const tempSheet = allWorksheets[allWorksheets.length - 1]; // Pick another worksheet
-    await tempSheet.getSummaryDataAsync(); // Just trigger an update
-
-    setTimeout(() => {
-      console.log("Fetching updated data after parameter change...");
+  function setupEventListeners() {
+    // Listen for filter changes on the worksheet
+    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
+      console.log("FilterChanged event:", event);
       renderViz();
-    }, 500);
-  } catch (error) {
-    console.error("Error triggering summary data update:", error);
-  }
-});
     });
-  }).catch(error => {
-    console.error("Error fetching parameters:", error);
-  });
-}
-
 
     // Listen for data source refresh
     worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
@@ -59,27 +34,13 @@
       console.log("Parameters found:", parameters.map(p => p.name));
       parameters.forEach(parameter => {
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
-       parameter.addEventListener(tableau.TableauEventType.ParameterChanged, async (event) => {
-  console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-
-  try {
-    // Force a refresh of the worksheet to reflect parameter changes
-   setTimeout(() => {
-  console.log("Fetching updated data after parameter change...");
-  renderViz();
-}, 500);
-
-
-    // Add a slight delay to ensure the data refresh takes effect
-    setTimeout(() => {
-      console.log("Fetching updated data after parameter change...");
-      renderViz();
-    }, 800); // 800ms delay for Tableau to process updates
-  } catch (error) {
-    console.error("Error refreshing data after parameter change:", error);
-  }
-});
-
+        parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
+          console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
+          // Add a slight delay to ensure worksheet data updates
+          setTimeout(() => {
+            console.log("Fetching updated data after parameter change...");
+            renderViz();
+          }, 500); // 500ms delay to allow Tableau to update
         });
       });
     }).catch(error => {
