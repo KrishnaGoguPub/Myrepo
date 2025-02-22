@@ -22,11 +22,14 @@
       renderViz();
     });
 
-    // Listen for parameter changes on the dashboard
-    tableau.extensions.dashboardContent.dashboard.getParametersAsync().then(parameters => {
+    // Listen for parameter changes at the dashboard level
+    const dashboard = tableau.extensions.dashboardContent.dashboard;
+    dashboard.getParametersAsync().then(parameters => {
+      console.log("Parameters found:", parameters);
       parameters.forEach(parameter => {
+        console.log(`Setting up listener for parameter: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
-          console.log("Parameter changed:", event);
+          console.log(`Parameter ${event.parameterName} changed to:`, event.value);
           renderViz(); // Re-render table when any parameter changes
         });
       });
@@ -123,7 +126,7 @@
         if (!ws[cellAddress]) continue;
         const colType = columns[col - 1].dataType;
         if (colType === "float" || colType === "int") {
-          ws[cellAddress].z = "###0";
+          ws[cellAddress].z = "#,##0";
         }
       }
     }
