@@ -3,7 +3,6 @@
   let worksheet;
   let lastRowCount = 0;
 
-  // Check if Extensions API is loaded
   if (!tableau.extensions) {
     console.error("Tableau Extensions API not loaded!");
     return;
@@ -13,8 +12,6 @@
     console.log("Extension initialized");
     worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
     renderViz();
-
-    // Set up parameter listeners
     setupParameterListeners();
 
     // Set up manual refresh button
@@ -34,11 +31,15 @@
   function setupParameterListeners() {
     const dashboard = tableau.extensions.dashboardContent.dashboard;
     dashboard.getParametersAsync().then(parameters => {
-      console.log("Parameters found:", parameters.map(p => p.name));
+      if (parameters.length === 0) {
+        console.warn("No parameters found on dashboard");
+        return;
+      }
+      console.log("Parameters found:", parameters.map(p => ({ name: p.name, currentValue: p.currentValue.value })));
       parameters.forEach(parameter => {
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
-          console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
+          console.log(`ParameterChanged event fired - ${event.parameterName} changed to:`, event.field.value);
           setTimeout(() => {
             console.log("Starting refresh process after parameter change...");
             pollForDataChange();
@@ -50,26 +51,28 @@
     });
   }
 
-  // Polling to detect data change
   function pollForDataChange() {
     let attempts = 0;
-    const maxAttempts = 5;
+    const maxAttempts = 10;
     const interval = setInterval(() => {
       attempts++;
       console.log(`Polling attempt ${attempts}/${maxAttempts}...`);
       worksheet.getSummaryDataAsync().then((data) => {
         const rows = data.data;
         console.log("Polling row count:", rows.length);
-        if (rows.length !== lastRowCount || attempts >= maxAttempts) {
+        if (rows.length !== lastRowCount) {
           clearInterval(interval);
-          console.log("Data changed or max attempts reached, rendering...");
+          console.log("Data changed, rendering...");
           renderViz();
+        } else if (attempts >= maxAttempts) {
+          clearInterval(interval);
+          console.log("Max attempts reached, no data change detected. Use manual refresh if needed.");
         }
       }).catch(error => {
         console.error("Error during polling:", error);
         clearInterval(interval);
       });
-    }, 1000); // Check every 1 second
+    }, 1000);
   }
 
   function renderViz() {
@@ -82,7 +85,6 @@
       console.log("Row count:", rows.length);
       lastRowCount = rows.length;
 
-      // Populate table header
       const header = document.getElementById("tableHeader");
       let headerRow = "<tr>";
       columns.forEach((col, index) => {
@@ -92,7 +94,6 @@
       headerRow += "</tr>";
       header.innerHTML = headerRow;
 
-      // Populate table body
       const body = document.getElementById("tableBody");
       let bodyContent = "";
       rows.forEach((row) => {
@@ -104,7 +105,6 @@
       });
       body.innerHTML = bodyContent;
 
-      // Attach export functionality
       const exportButton = document.getElementById("exportButton");
       if (exportButton) {
         exportButton.onclick = () => exportToXLSX(columns, rows, worksheet.name);
@@ -112,14 +112,12 @@
         console.warn("Export button not found in DOM");
       }
 
-      // Adjust column widths
       adjustColumnWidths();
     }).catch(error => {
       console.error("Error fetching summary data:", error);
     });
   }
 
-  // Update column names
   window.updateColumnName = function(element, originalName) {
     const newName = element.textContent.trim() || originalName;
     const index = element.getAttribute("data-index");
@@ -127,7 +125,6 @@
     element.textContent = newName;
   };
 
-  // Adjust column widths dynamically
   function adjustColumnWidths() {
     const thElements = document.querySelectorAll("#tableHeader th");
     thElements.forEach((th, index) => {
