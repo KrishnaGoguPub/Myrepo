@@ -38,12 +38,12 @@
     #vizContainer {
       flex: 1;
       overflow-x: auto; /* Horizontal scroll when needed */
-      overflow-y: hidden;
+      overflow-y: hidden; /* No vertical scroll here */
     }
     #dataTable {
       border-collapse: collapse;
-      width: 100%; /* Fit container initially */
-      table-layout: auto; /* Auto-width columns */
+      width: 100%; /* Fit container by default */
+      table-layout: fixed; /* Ensure alignment */
     }
     th, td {
       border: 0.5px solid #d3d3d3;
@@ -63,17 +63,18 @@
       position: sticky;
       top: 0;
       z-index: 10;
+      background-color: #f2f2f2; /* Ensure header stays visible */
     }
     tbody {
-      max-height: calc(100vh - 70px);
-      overflow-y: auto; /* Vertical scroll when needed */
       display: block;
+      max-height: calc(100vh - 70px); /* Space for buttons */
+      overflow-y: auto; /* Vertical scroll when needed */
       width: 100%;
     }
-    thead, tbody tr {
+    thead tr, tbody tr {
       display: table;
       width: 100%;
-      table-layout: auto;
+      table-layout: fixed; /* Sync with #dataTable */
     }
     tbody::-webkit-scrollbar, #vizContainer::-webkit-scrollbar {
       width: 8px; /* Vertical */
@@ -86,7 +87,7 @@
       background: #f1f1f1;
     }
   </style>
- <!-- Load Tableau Extensions API -->
+  <!-- Load Tableau Extensions API -->
   <script src="https://krishnagogupub.github.io/Myrepo/lib/tableau.extensions.1.latest.js"></script>
   <!-- Load SheetJS for XLSX export -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
@@ -95,8 +96,8 @@
 <body>
   <div id="container">
     <div id="buttonContainer">
-      <button id="exportButton">Export as Excel</button>
-      <button id="refreshButton">Apply Filters</button>
+      <button id="exportButton">Export as XLSX</button>
+      <button id="refreshButton">Refresh</button>
     </div>
     <div id="vizContainer">
       <table id="dataTable">
