@@ -39,7 +39,7 @@
       flex: 1;
       overflow-x: auto; /* Horizontal scroll at bottom */
       overflow-y: auto; /* Vertical scroll for entire table */
-      max-height: calc(100vh - 70px); /* Limit height for scrolling */
+      max-height: calc(100vh - 70px);
     }
     #dataTable {
       border-collapse: collapse;
@@ -47,20 +47,20 @@
       table-layout: auto; /* Natural column widths */
     }
     th, td {
-      border: 1px solid #d3d3d3; /* Thicker for visible separators */
+      border: 1px solid #d3d3d3;
       padding: 8px 12px;
       text-align: left;
       box-sizing: border-box;
       min-width: 100px;
-      white-space: nowrap; /* Prevent text wrap */
+      white-space: nowrap;
     }
     th {
-      resize: horizontal;
+      resize: horizontal; /* Enable resizing */
       cursor: col-resize;
       background-color: #f2f2f2;
-      overflow: hidden;
+      overflow-x: visible; /* Allow resizing handle to show */
+      max-width: 500px; /* Optional: limit max width */
     }
-    /* Scrollbar styling */
     #vizContainer::-webkit-scrollbar {
       width: 8px; /* Vertical */
       height: 8px; /* Horizontal */
@@ -81,8 +81,8 @@
 <body>
   <div id="container">
     <div id="buttonContainer">
-      <button id="exportButton">Export as XLSX</button>
-      <button id="refreshButton">Refresh</button>
+      <button id="refreshButton">Apply Filters</button>
+      <button id="exportButton">Export as Excel</button>      
     </div>
     <div id="vizContainer">
       <table id="dataTable">
