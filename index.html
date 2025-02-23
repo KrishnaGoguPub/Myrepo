@@ -25,15 +25,16 @@
       right: 5px;
       z-index: 20;
     }
-    #exportButton {
+    #exportButton, #refreshButton {
       padding: 5px 10px;
       background-color: #003087;
       color: white;
       border: none;
       border-radius: 3px;
       cursor: pointer;
+      margin-left: 5px; /* Space between buttons */
     }
-    #exportButton:hover {
+    #exportButton:hover, #refreshButton:hover {
       background-color: #002060;
     }
     #vizContainer {
@@ -64,12 +65,12 @@
       position: sticky;
       top: 0;
       z-index: 10;
-      display: block; /* Ensure thead behaves like a block for alignment */
+      display: block;
       width: 100%;
     }
     tbody {
       display: block;
-      max-height: calc(100vh - 50px);
+      max-height: calc(100vh - 50px); /* Adjust for header and padding */
       overflow-y: auto;
       overflow-x: hidden;
       width: 100%;
@@ -79,7 +80,6 @@
       width: 100%;
       table-layout: fixed;
     }
-    /* Adjust for scrollbar width to prevent misalignment */
     tbody::-webkit-scrollbar {
       width: 8px;
     }
@@ -99,14 +99,13 @@
 <body>
   <div id="container">
     <div id="exportContainer">
-      <button id="exportButton">Export to Excel</button>
+      <button id="exportButton">Export as XLSX</button>
+      <button id="refreshButton">Refresh</button>
     </div>
     <div id="vizContainer">
       <table id="dataTable">
         <thead id="tableHeader">
-          <tr>
-            <!-- Columns will be populated here -->
-          </tr>
+          <tr></tr>
         </thead>
         <tbody id="tableBody"></tbody>
       </table>
