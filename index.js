@@ -129,7 +129,8 @@
   function adjustColumnWidths() {
     const thElements = document.querySelectorAll("#tableHeader th");
     thElements.forEach((th, index) => {
-      th.removeEventListener("resize", resizeHandler); // Remove old listeners
+      // Remove old listeners to prevent duplicates
+      th.removeEventListener("resize", resizeHandler);
       th.addEventListener("resize", resizeHandler);
     });
   }
@@ -137,10 +138,17 @@
   function resizeHandler(event) {
     const th = event.target;
     const index = parseInt(th.getAttribute("data-index"));
-    const width = th.offsetWidth;
+    const newWidth = th.offsetWidth;
+    console.log(`Column ${index + 1} resized to: ${newWidth}px`);
+
+    // Sync all td elements in this column
     document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
-      td.style.width = `${width}px`;
+      td.style.width = `${newWidth}px`;
+      td.style.minWidth = `${newWidth}px`; // Ensure consistency
     });
+
+    // Update table width if needed
+    updateTableWidth();
   }
 
   function autoAdjustColumnWidths() {
@@ -154,18 +162,30 @@
 
     let totalWidth = 0;
     thElements.forEach((th, index) => {
-      const contentWidth = th.scrollWidth; // Natural content width
-      const width = Math.max(baseWidth, contentWidth); // Use larger of base or content
+      const contentWidth = th.scrollWidth;
+      const width = Math.max(baseWidth, contentWidth);
       th.style.width = `${width}px`;
+      th.style.minWidth = `${width}px`; // Set initial min-width
       document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
         td.style.width = `${width}px`;
+        td.style.minWidth = `${width}px`;
       });
       totalWidth += width;
     });
 
+    updateTableWidth();
+  }
+
+  function updateTableWidth() {
+    const thElements = document.querySelectorAll("#tableHeader th");
+    let totalWidth = 0;
+    thElements.forEach(th => {
+      totalWidth += th.offsetWidth;
+    });
     const dataTable = document.getElementById("dataTable");
-    dataTable.style.width = totalWidth > panelWidth ? `${totalWidth}px` : "100%";
-    console.log("Table total width:", totalWidth, "Panel width:", panelWidth);
+    const vizContainer = document.getElementById("vizContainer");
+    dataTable.style.width = totalWidth > vizContainer.offsetWidth ? `${totalWidth}px` : "100%";
+    console.log("Updated table width:", totalWidth, "Container width:", vizContainer.offsetWidth);
   }
 
   function exportToXLSX(columns, rows, worksheetName) {
