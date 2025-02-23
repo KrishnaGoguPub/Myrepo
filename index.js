@@ -8,6 +8,8 @@
     worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
     renderViz();
     setupEventListeners();
+  }).catch(error => {
+    console.error("Initialization failed:", error);
   });
 
   function setupEventListeners() {
@@ -23,13 +25,11 @@
       renderViz();
     });
 
-    // Summary data change listener
-    worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
-      console.log("SummaryDataChanged event:", event);
-      renderViz();
-    });
+    // Parameter change listener (moved to separate function for clarity)
+    setupParameterListeners();
+  }
 
-    // Parameter change listener
+  function setupParameterListeners() {
     const dashboard = tableau.extensions.dashboardContent.dashboard;
     dashboard.getParametersAsync().then(parameters => {
       console.log("Parameters found:", parameters.map(p => p.name));
@@ -37,10 +37,10 @@
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
           console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-          // Attempt to force refresh after delay
+          // Start polling after parameter change
           setTimeout(() => {
-            console.log("Attempting to force refresh after parameter change...");
-            forceRefresh();
+            console.log("Starting refresh process after parameter change...");
+            pollForDataChange();
           }, 2000);
         });
       });
@@ -49,25 +49,7 @@
     });
   }
 
-  // Force a refresh by re-fetching data
-  function forceRefresh() {
-    console.log("Forcing data refresh...");
-    worksheet.getSummaryDataAsync().then((data) => {
-      const rows = data.data;
-      console.log("Forced fetch row count:", rows.length);
-      if (rows.length !== lastRowCount) {
-        console.log("Row count changed, updating table...");
-        renderViz();
-      } else {
-        console.log("Row count unchanged, starting polling...");
-        pollForDataChange(); // Fallback to polling if no immediate change
-      }
-    }).catch(error => {
-      console.error("Error during forced fetch:", error);
-    });
-  }
-
-  // Polling fallback to detect data change
+  // Polling to detect data change
   function pollForDataChange() {
     let attempts = 0;
     const maxAttempts = 5;
