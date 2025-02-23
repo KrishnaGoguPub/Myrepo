@@ -14,7 +14,6 @@
     renderViz();
     setupParameterListeners();
 
-    // Set up manual refresh button
     const refreshButton = document.getElementById("refreshButton");
     if (refreshButton) {
       refreshButton.addEventListener("click", () => {
@@ -113,6 +112,7 @@
       }
 
       adjustColumnWidths();
+      autoAdjustColumnWidths(); // Auto-width within panel
     }).catch(error => {
       console.error("Error fetching summary data:", error);
     });
@@ -123,6 +123,7 @@
     const index = element.getAttribute("data-index");
     renamedColumns[index] = newName;
     element.textContent = newName;
+    adjustColumnWidths();
   };
 
   function adjustColumnWidths() {
@@ -137,13 +138,38 @@
     });
   }
 
+  function autoAdjustColumnWidths() {
+    const vizContainer = document.getElementById("vizContainer");
+    const panelWidth = vizContainer.offsetWidth; // Use container width as proxy for panel
+    const thElements = document.querySelectorAll("#tableHeader th");
+    const numColumns = thElements.length;
+    const baseWidth = Math.max(100, Math.floor(panelWidth / numColumns)); // Minimum 100px
+
+    console.log("Panel width:", panelWidth, "Base column width:", baseWidth);
+
+    thElements.forEach((th, index) => {
+      th.style.width = `${baseWidth}px`;
+      document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
+        td.style.width = `${baseWidth}px`;
+      });
+    });
+
+    // Check if total width exceeds panel width
+    const totalWidth = numColumns * baseWidth;
+    if (totalWidth > panelWidth) {
+      console.log("Total width exceeds panel, horizontal scroll enabled");
+    } else {
+      console.log("Total width fits panel, no horizontal scroll needed");
+    }
+  }
+
   function exportToXLSX(columns, rows, worksheetName) {
     const headers = ["Row Index", ...columns.map((col, i) => renamedColumns[i] || col.fieldName)];
     const dataArray = [headers];
     rows.forEach((row, index) => {
       const rowData = [(index + 1).toString(), ...row.map((cell, i) => {
         const col = columns[i];
-        return col.dataType === "float" || col.dataType === "int" ? cell.value : cell.formattedValue;
+        return col.dataType === "float" || colType === "int" ? cell.value : cell.formattedValue;
       })];
       dataArray.push(rowData);
     });
