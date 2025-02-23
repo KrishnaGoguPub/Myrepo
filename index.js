@@ -3,31 +3,33 @@
   let worksheet;
   let lastRowCount = 0;
 
+  // Check if Extensions API is loaded
+  if (!tableau.extensions) {
+    console.error("Tableau Extensions API not loaded!");
+    return;
+  }
+
   tableau.extensions.initializeAsync().then(() => {
     console.log("Extension initialized");
     worksheet = tableau.extensions.dashboardContent.dashboard.worksheets[0];
     renderViz();
-    setupEventListeners();
+
+    // Set up parameter listeners
+    setupParameterListeners();
+
+    // Set up manual refresh button
+    const refreshButton = document.getElementById("refreshButton");
+    if (refreshButton) {
+      refreshButton.addEventListener("click", () => {
+        console.log("Manual refresh triggered");
+        renderViz();
+      });
+    } else {
+      console.warn("Refresh button not found in DOM");
+    }
   }).catch(error => {
     console.error("Initialization failed:", error);
   });
-
-  function setupEventListeners() {
-    // Filter change listener
-    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
-      console.log("FilterChanged event:", event);
-      renderViz();
-    });
-
-    // Data source change listener
-    worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
-      console.log("DataSourceChanged event:", event);
-      renderViz();
-    });
-
-    // Parameter change listener (moved to separate function for clarity)
-    setupParameterListeners();
-  }
 
   function setupParameterListeners() {
     const dashboard = tableau.extensions.dashboardContent.dashboard;
@@ -37,7 +39,6 @@
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
           console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-          // Start polling after parameter change
           setTimeout(() => {
             console.log("Starting refresh process after parameter change...");
             pollForDataChange();
@@ -104,7 +105,12 @@
       body.innerHTML = bodyContent;
 
       // Attach export functionality
-      document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
+      const exportButton = document.getElementById("exportButton");
+      if (exportButton) {
+        exportButton.onclick = () => exportToXLSX(columns, rows, worksheet.name);
+      } else {
+        console.warn("Export button not found in DOM");
+      }
 
       // Adjust column widths
       adjustColumnWidths();
