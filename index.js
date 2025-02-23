@@ -10,63 +10,27 @@
   });
 
   function setupEventListeners() {
-  worksheet.addEventListener(tableau.TableauEventType.FilterChanged, renderViz);
-  worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, renderViz);
-  worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, renderViz);
-
-  const dashboard = tableau.extensions.dashboardContent.dashboard;
-  dashboard.getParametersAsync().then(parameters => {
-    parameters.forEach(parameter => {
-    parameter.addEventListener(tableau.TableauEventType.ParameterChanged, async (event) => {
-  console.log(`ParameterChanged: ${event.parameterName} changed to:`, event.field.value);
-
-  try {
-    console.log("Temporarily switching worksheets...");
-    const allWorksheets = tableau.extensions.dashboardContent.dashboard.worksheets;
-    const tempSheet = allWorksheets[allWorksheets.length - 1]; // Pick another worksheet
-    await tempSheet.getSummaryDataAsync(); // Just trigger an update
-
-    setTimeout(() => {
-      console.log("Fetching updated data after parameter change...");
-      renderViz();
-    }, 500);
-  } catch (error) {
-    console.error("Error triggering summary data update:", error);
-  }
-});
-
+    // Listen for filter changes on the worksheet
+    worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
+      console.log("Filter changed:", event);
+      renderViz(); // Re-render table when filter changes
     });
-  }).catch(error => {
-    console.error("Error fetching parameters:", error);
-  });
-}
-
 
     // Listen for data source refresh
     worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
-      console.log("DataSourceChanged event:", event);
-      renderViz();
-    });
-
-    // Listen for worksheet data updates (might catch parameter-driven changes)
-    worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
-      console.log("SummaryDataChanged event:", event);
+      console.log("Data source changed:", event);
       renderViz();
     });
 
     // Listen for parameter changes at the dashboard level
     const dashboard = tableau.extensions.dashboardContent.dashboard;
     dashboard.getParametersAsync().then(parameters => {
-      console.log("Parameters found:", parameters.map(p => p.name));
+      console.log("Parameters found:", parameters);
       parameters.forEach(parameter => {
-        console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
+        console.log(`Setting up listener for parameter: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
-          console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-          // Add a slight delay to ensure worksheet data updates
-          setTimeout(() => {
-            console.log("Fetching updated data after parameter change...");
-            renderViz();
-          }, 500); // 500ms delay to allow Tableau to update
+          console.log(`Parameter ${event.parameterName} changed to:`, event.value);
+          renderViz(); // Re-render table when any parameter changes
         });
       });
     }).catch(error => {
@@ -75,7 +39,6 @@
   }
 
   function renderViz() {
-    console.log("Rendering table with latest data...");
     worksheet.getSummaryDataAsync().then((data) => {
       const columns = data.columns;
       const rows = data.data;
