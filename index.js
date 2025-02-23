@@ -129,27 +129,33 @@
   function adjustColumnWidths() {
     const thElements = document.querySelectorAll("#tableHeader th");
     thElements.forEach((th, index) => {
-      th.addEventListener("resize", () => {
-        const width = th.offsetWidth;
-        document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
-          td.style.width = `${width}px`;
-        });
-      });
+      th.removeEventListener("resize", resizeHandler); // Remove old listeners
+      th.addEventListener("resize", resizeHandler);
+    });
+  }
+
+  function resizeHandler(event) {
+    const th = event.target;
+    const index = parseInt(th.getAttribute("data-index"));
+    const width = th.offsetWidth;
+    document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
+      td.style.width = `${width}px`;
     });
   }
 
   function autoAdjustColumnWidths() {
     const vizContainer = document.getElementById("vizContainer");
-    const panelWidth = vizContainer.offsetWidth; // Proxy for panel width
+    const panelWidth = vizContainer.offsetWidth;
     const thElements = document.querySelectorAll("#tableHeader th");
     const numColumns = thElements.length;
-    const baseWidth = Math.max(100, Math.floor(panelWidth / numColumns)); // Minimum 100px
+    const baseWidth = Math.max(100, Math.floor(panelWidth / numColumns));
 
     console.log("Panel width:", panelWidth, "Base column width:", baseWidth);
 
     let totalWidth = 0;
     thElements.forEach((th, index) => {
-      const width = Math.min(baseWidth, th.scrollWidth); // Use content width if smaller
+      const contentWidth = th.scrollWidth; // Natural content width
+      const width = Math.max(baseWidth, contentWidth); // Use larger of base or content
       th.style.width = `${width}px`;
       document.querySelectorAll(`#dataTable td:nth-child(${index + 1})`).forEach(td => {
         td.style.width = `${width}px`;
@@ -179,7 +185,7 @@
     for (let col = range.s.c; col <= range.e.c; col++) {
       const cellAddress = XLSX.utils.encode_cell({ r: 0, c: col });
       if (!ws[cellAddress]) continue;
-      ws[columnAddress].s = {
+      ws[cellAddress].s = {
         fill: { patternType: "solid", fgColor: { rgb: "003087" } },
         font: { bold: true, color: { rgb: "FFFFFF" } },
         alignment: { horizontal: "center" },
