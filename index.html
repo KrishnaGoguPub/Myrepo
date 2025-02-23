@@ -15,15 +15,13 @@
     }
     #container {
       flex: 1;
-      position: relative;
       display: flex;
       flex-direction: column;
     }
-    #exportContainer {
-      position: absolute;
-      top: 5px;
-      right: 5px;
-      z-index: 20;
+    #buttonContainer {
+      display: flex;
+      justify-content: flex-end; /* Align buttons to the right */
+      padding-bottom: 10px; /* Space between buttons and table */
     }
     #exportButton, #refreshButton {
       padding: 5px 10px;
@@ -70,7 +68,7 @@
     }
     tbody {
       display: block;
-      max-height: calc(100vh - 50px); /* Adjust for header and padding */
+      max-height: calc(100vh - 70px); /* Adjust for buttons and padding */
       overflow-y: auto;
       overflow-x: hidden;
       width: 100%;
@@ -98,9 +96,10 @@
 </head>
 <body>
   <div id="container">
-    <div id="exportContainer">
-      <button id="exportButton">Export as XLSX</button>
-      <button id="refreshButton">Refresh</button>
+    <div id="buttonContainer">
+      <button id="refreshButton">Apply Filters</button>
+      <button id="exportButton">Export to Excel</button>
+      
     </div>
     <div id="vizContainer">
       <table id="dataTable">
