@@ -1,6 +1,7 @@
 (function () {
   let renamedColumns = {};
   let worksheet;
+  let lastRowCount = 0;
 
   tableau.extensions.initializeAsync().then(() => {
     console.log("Extension initialized");
@@ -10,25 +11,25 @@
   });
 
   function setupEventListeners() {
-    // Listen for filter changes
+    // Filter change listener
     worksheet.addEventListener(tableau.TableauEventType.FilterChanged, (event) => {
       console.log("FilterChanged event:", event);
       renderViz();
     });
 
-    // Listen for data source refresh
+    // Data source change listener
     worksheet.addEventListener(tableau.TableauEventType.DataSourceChanged, (event) => {
       console.log("DataSourceChanged event:", event);
       renderViz();
     });
 
-    // Listen for summary data changes
+    // Summary data change listener
     worksheet.addEventListener(tableau.TableauEventType.SummaryDataChanged, (event) => {
       console.log("SummaryDataChanged event:", event);
       renderViz();
     });
 
-    // Listen for parameter changes
+    // Parameter change listener
     const dashboard = tableau.extensions.dashboardContent.dashboard;
     dashboard.getParametersAsync().then(parameters => {
       console.log("Parameters found:", parameters.map(p => p.name));
@@ -36,8 +37,11 @@
         console.log(`Subscribing to ParameterChanged for: ${parameter.name}`);
         parameter.addEventListener(tableau.TableauEventType.ParameterChanged, (event) => {
           console.log(`ParameterChanged event - ${event.parameterName} changed to:`, event.field.value);
-          // Trigger a dummy filter change after parameter change
-          triggerDummyFilterChange();
+          // Attempt to force refresh after delay
+          setTimeout(() => {
+            console.log("Attempting to force refresh after parameter change...");
+            forceRefresh();
+          }, 2000);
         });
       });
     }).catch(error => {
@@ -45,58 +49,44 @@
     });
   }
 
-  // Function to trigger a dummy filter change
-  function triggerDummyFilterChange() {
-    console.log("Triggering dummy filter change...");
-    // Get the filters on the worksheet to find a suitable one
-    worksheet.getFiltersAsync().then(filters => {
-      if (filters.length === 0) {
-        console.warn("No filters found on worksheet to toggle. Extension may not refresh.");
-        // Fallback: Force renderViz directly with delay
-        setTimeout(() => renderViz(), 1000);
-        return;
-      }
-
-      // Use the first filter (assuming it’s a categorical or range filter)
-      const filter = filters[0];
-      console.log("Using filter:", filter.fieldName);
-
-      // Depending on filter type, apply a dummy change
-      if (filter.filterType === tableau.FilterType.Categorical) {
-        worksheet.getSummaryDataAsync().then(data => {
-          const column = data.columns.find(col => col.fieldName === filter.fieldName);
-          if (column && column.dataType === "string") {
-            // Get current values and toggle one
-            const currentValues = filter.appliedValues.map(v => v.value);
-            const dummyValue = currentValues[0] || "dummy"; // Use first value or a placeholder
-            // Clear and reapply to trigger refresh
-            worksheet.clearFilterAsync(filter.fieldName).then(() => {
-              worksheet.applyFilterAsync(filter.fieldName, [dummyValue], tableau.FilterUpdateType.Replace).then(() => {
-                console.log("Dummy filter applied, should trigger refresh...");
-                // Revert immediately to minimize impact
-                worksheet.applyFilterAsync(filter.fieldName, currentValues, tableau.FilterUpdateType.Replace);
-              });
-            });
-          }
-        });
-      } else if (filter.filterType === tableau.FilterType.Range) {
-        // For range filters (e.g., date), tweak min/max slightly
-        const currentMin = filter.minValue ? filter.minValue.value : null;
-        const currentMax = filter.maxValue ? filter.maxValue.value : null;
-        if (currentMin && currentMax) {
-          worksheet.applyFilterAsync(filter.fieldName, { min: currentMin, max: currentMax + 1 }, tableau.FilterUpdateType.Replace).then(() => {
-            worksheet.applyFilterAsync(filter.fieldName, { min: currentMin, max: currentMax }, tableau.FilterUpdateType.Replace);
-            console.log("Range filter toggled and reverted, should trigger refresh...");
-          });
-        }
+  // Force a refresh by re-fetching data
+  function forceRefresh() {
+    console.log("Forcing data refresh...");
+    worksheet.getSummaryDataAsync().then((data) => {
+      const rows = data.data;
+      console.log("Forced fetch row count:", rows.length);
+      if (rows.length !== lastRowCount) {
+        console.log("Row count changed, updating table...");
+        renderViz();
       } else {
-        console.warn("Filter type not handled for dummy change:", filter.filterType);
-        setTimeout(() => renderViz(), 1000); // Fallback
+        console.log("Row count unchanged, starting polling...");
+        pollForDataChange(); // Fallback to polling if no immediate change
       }
     }).catch(error => {
-      console.error("Error fetching filters for dummy change:", error);
-      setTimeout(() => renderViz(), 1000); // Fallback if no filters
+      console.error("Error during forced fetch:", error);
     });
+  }
+
+  // Polling fallback to detect data change
+  function pollForDataChange() {
+    let attempts = 0;
+    const maxAttempts = 5;
+    const interval = setInterval(() => {
+      attempts++;
+      console.log(`Polling attempt ${attempts}/${maxAttempts}...`);
+      worksheet.getSummaryDataAsync().then((data) => {
+        const rows = data.data;
+        console.log("Polling row count:", rows.length);
+        if (rows.length !== lastRowCount || attempts >= maxAttempts) {
+          clearInterval(interval);
+          console.log("Data changed or max attempts reached, rendering...");
+          renderViz();
+        }
+      }).catch(error => {
+        console.error("Error during polling:", error);
+        clearInterval(interval);
+      });
+    }, 1000); // Check every 1 second
   }
 
   function renderViz() {
@@ -107,6 +97,7 @@
 
       console.log("Columns:", columns.map(c => c.fieldName));
       console.log("Row count:", rows.length);
+      lastRowCount = rows.length;
 
       // Populate table header
       const header = document.getElementById("tableHeader");
@@ -133,14 +124,14 @@
       // Attach export functionality
       document.getElementById("exportButton").onclick = () => exportToXLSX(columns, rows, worksheet.name);
 
-      // Adjust column widths after rendering
+      // Adjust column widths
       adjustColumnWidths();
     }).catch(error => {
       console.error("Error fetching summary data:", error);
     });
   }
 
-  // Function to update column names
+  // Update column names
   window.updateColumnName = function(element, originalName) {
     const newName = element.textContent.trim() || originalName;
     const index = element.getAttribute("data-index");
@@ -148,7 +139,7 @@
     element.textContent = newName;
   };
 
-  // Function to adjust column widths dynamically
+  // Adjust column widths dynamically
   function adjustColumnWidths() {
     const thElements = document.querySelectorAll("#tableHeader th");
     thElements.forEach((th, index) => {
