@@ -37,21 +37,22 @@
     }
     #vizContainer {
       flex: 1;
-      overflow-x: auto; /* Horizontal scroll when needed */
-      overflow-y: hidden; /* No vertical scroll here */
+      overflow-x: auto; /* Horizontal scroll at bottom */
+      overflow-y: auto; /* Vertical scroll for entire table */
+      max-height: calc(100vh - 70px); /* Limit height for scrolling */
     }
     #dataTable {
       border-collapse: collapse;
-      width: 100%; /* Fit container by default */
-      table-layout: fixed; /* Ensure alignment */
+      width: auto; /* Expand based on content */
+      table-layout: auto; /* Natural column widths */
     }
     th, td {
-      border: 0.5px solid #d3d3d3;
+      border: 1px solid #d3d3d3; /* Thicker for visible separators */
       padding: 8px 12px;
       text-align: left;
       box-sizing: border-box;
       min-width: 100px;
-      white-space: nowrap;
+      white-space: nowrap; /* Prevent text wrap */
     }
     th {
       resize: horizontal;
@@ -59,31 +60,15 @@
       background-color: #f2f2f2;
       overflow: hidden;
     }
-    thead {
-      position: sticky;
-      top: 0;
-      z-index: 10;
-      background-color: #f2f2f2; /* Ensure header stays visible */
-    }
-    tbody {
-      display: block;
-      max-height: calc(100vh - 70px); /* Space for buttons */
-      overflow-y: auto; /* Vertical scroll when needed */
-      width: 100%;
-    }
-    thead tr, tbody tr {
-      display: table;
-      width: 100%;
-      table-layout: fixed; /* Sync with #dataTable */
-    }
-    tbody::-webkit-scrollbar, #vizContainer::-webkit-scrollbar {
+    /* Scrollbar styling */
+    #vizContainer::-webkit-scrollbar {
       width: 8px; /* Vertical */
       height: 8px; /* Horizontal */
     }
-    tbody::-webkit-scrollbar-thumb, #vizContainer::-webkit-scrollbar-thumb {
+    #vizContainer::-webkit-scrollbar-thumb {
       background: #888;
     }
-    tbody::-webkit-scrollbar-track, #vizContainer::-webkit-scrollbar-track {
+    #vizContainer::-webkit-scrollbar-track {
       background: #f1f1f1;
     }
   </style>
