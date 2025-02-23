@@ -20,8 +20,8 @@
     }
     #buttonContainer {
       display: flex;
-      justify-content: flex-end; /* Align buttons to the right */
-      padding-bottom: 10px; /* Space between buttons and table */
+      justify-content: flex-end;
+      padding-bottom: 10px;
     }
     #exportButton, #refreshButton {
       padding: 5px 10px;
@@ -30,61 +30,59 @@
       border: none;
       border-radius: 3px;
       cursor: pointer;
-      margin-left: 5px; /* Space between buttons */
+      margin-left: 5px;
     }
     #exportButton:hover, #refreshButton:hover {
       background-color: #002060;
     }
     #vizContainer {
       flex: 1;
-      overflow: hidden;
+      overflow-x: auto; /* Horizontal scroll when needed */
+      overflow-y: hidden;
     }
     #dataTable {
       border-collapse: collapse;
-      width: 100%;
-      table-layout: fixed;
+      width: 100%; /* Fit container initially */
+      table-layout: auto; /* Auto-width columns */
     }
     th, td {
       border: 0.5px solid #d3d3d3;
-      padding: 8px;
+      padding: 8px 12px;
       text-align: left;
       box-sizing: border-box;
       min-width: 100px;
-      overflow: hidden;
-      text-overflow: ellipsis;
       white-space: nowrap;
     }
     th {
       resize: horizontal;
       cursor: col-resize;
       background-color: #f2f2f2;
+      overflow: hidden;
     }
     thead {
       position: sticky;
       top: 0;
       z-index: 10;
-      display: block;
-      width: 100%;
     }
     tbody {
+      max-height: calc(100vh - 70px);
+      overflow-y: auto; /* Vertical scroll when needed */
       display: block;
-      max-height: calc(100vh - 70px); /* Adjust for buttons and padding */
-      overflow-y: auto;
-      overflow-x: hidden;
       width: 100%;
     }
-    thead tr, tbody tr {
+    thead, tbody tr {
       display: table;
       width: 100%;
-      table-layout: fixed;
+      table-layout: auto;
     }
-    tbody::-webkit-scrollbar {
-      width: 8px;
+    tbody::-webkit-scrollbar, #vizContainer::-webkit-scrollbar {
+      width: 8px; /* Vertical */
+      height: 8px; /* Horizontal */
     }
-    tbody::-webkit-scrollbar-thumb {
+    tbody::-webkit-scrollbar-thumb, #vizContainer::-webkit-scrollbar-thumb {
       background: #888;
     }
-    tbody::-webkit-scrollbar-track {
+    tbody::-webkit-scrollbar-track, #vizContainer::-webkit-scrollbar-track {
       background: #f1f1f1;
     }
   </style>
@@ -97,9 +95,8 @@
 <body>
   <div id="container">
     <div id="buttonContainer">
-      <button id="refreshButton">Apply Filters</button>
-      <button id="exportButton">Export to Excel</button>
-      
+      <button id="exportButton">Export as XLSX</button>
+      <button id="refreshButton">Refresh</button>
     </div>
     <div id="vizContainer">
       <table id="dataTable">
